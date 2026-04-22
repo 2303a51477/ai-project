@@ -1,0 +1,497 @@
+{% extends "base.html" %}
+
+{% block extra_css %}
+<style>
+    .booking-container {
+        min-height: 100vh;
+        padding: 100px 0 50px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .booking-card {
+        background: rgba(255,255,255,0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 30px;
+        padding: 40px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        animation: fadeInUp 0.6s ease;
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .progress-steps {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 40px;
+        position: relative;
+    }
+
+    .progress-steps::before {
+        content: '';
+        position: absolute;
+        top: 25px;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: #e0e0e0;
+        z-index: 0;
+    }
+
+    .step {
+        flex: 1;
+        text-align: center;
+        position: relative;
+        z-index: 1;
+    }
+
+    .step-circle {
+        width: 50px;
+        height: 50px;
+        background: white;
+        border: 2px solid #e0e0e0;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 10px;
+        font-weight: bold;
+        color: #999;
+        transition: all 0.3s ease;
+    }
+
+    .step.active .step-circle {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        border-color: transparent;
+        color: white;
+        transform: scale(1.1);
+    }
+
+    .step.completed .step-circle {
+        background: #28a745;
+        border-color: transparent;
+        color: white;
+    }
+
+    .step-label {
+        font-size: 0.9rem;
+        color: #666;
+    }
+
+    .step.active .step-label {
+        color: #667eea;
+        font-weight: 600;
+    }
+
+    .form-step {
+        animation: fadeIn 0.5s ease;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    .event-option, .photographer-option {
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .event-card {
+        background: white;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+        height: 100%;
+    }
+
+    .event-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+    }
+
+    .event-image {
+        height: 150px;
+        background-size: cover;
+        background-position: center;
+        position: relative;
+    }
+
+    .event-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, rgba(102,126,234,0.8), rgba(118,75,162,0.8));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: all 0.3s ease;
+    }
+
+    .event-card:hover .event-overlay {
+        opacity: 1;
+    }
+
+    .event-content {
+        padding: 15px;
+        text-align: center;
+    }
+
+    .photographer-card {
+        background: white;
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 20px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+    }
+
+    .photographer-card:hover {
+        transform: translateX(10px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    .photographer-card.selected {
+        border-color: #667eea;
+        background: linear-gradient(135deg, rgba(102,126,234,0.1), rgba(118,75,162,0.1));
+    }
+
+    .camera-option {
+        background: white;
+        border-radius: 15px;
+        padding: 15px;
+        margin-bottom: 15px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: 2px solid #e0e0e0;
+    }
+
+    .camera-option:hover {
+        border-color: #667eea;
+        transform: translateX(5px);
+    }
+
+    .camera-option.selected {
+        border-color: #667eea;
+        background: linear-gradient(135deg, rgba(102,126,234,0.1), rgba(118,75,162,0.1));
+    }
+
+    .summary-card {
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        border-radius: 15px;
+        padding: 20px;
+    }
+
+    .summary-item {
+        padding: 10px 0;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .btn-next, .btn-prev {
+        padding: 12px 30px;
+        border-radius: 25px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn-next:hover, .btn-prev:hover {
+        transform: translateY(-2px);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="booking-container">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="booking-card">
+                    <h2 class="text-center mb-4 fw-bold">Book Your Photographer</h2>
+                    
+                    <!-- Progress Steps -->
+                    <div class="progress-steps">
+                        <div class="step active" id="step1Indicator">
+                            <div class="step-circle">1</div>
+                            <div class="step-label">Event Type</div>
+                        </div>
+                        <div class="step" id="step2Indicator">
+                            <div class="step-circle">2</div>
+                            <div class="step-label">Camera & Days</div>
+                        </div>
+                        <div class="step" id="step3Indicator">
+                            <div class="step-circle">3</div>
+                            <div class="step-label">Photographer</div>
+                        </div>
+                        <div class="step" id="step4Indicator">
+                            <div class="step-circle">4</div>
+                            <div class="step-label">Confirm</div>
+                        </div>
+                    </div>
+
+                    <form id="bookingForm" method="POST">
+                        <!-- Step 1: Event Selection -->
+                        <div class="form-step" id="step1">
+                            <h4 class="mb-4">Select Event Type</h4>
+                            <div class="row g-4">
+                                {% for event in events %}
+                                <div class="col-md-4 col-lg-3">
+                                    <div class="event-card" data-event="{{ event.name }}">
+                                        <div class="event-image" style="background-image: url('{{ event.image }}')">
+                                            <div class="event-overlay">
+                                                <i class="fas fa-check-circle fa-3x text-white"></i>
+                                            </div>
+                                        </div>
+                                        <div class="event-content">
+                                            <i class="fas {{ event.icon }} fa-2x text-primary mb-2"></i>
+                                            <h6>{{ event.name }}</h6>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            <input type="hidden" name="event_type" id="event_type" required>
+                            <div class="text-end mt-4">
+                                <button type="button" class="btn btn-primary btn-next">Next Step <i class="fas fa-arrow-right"></i></button>
+                            </div>
+                        </div>
+
+                        <!-- Step 2: Camera & Days -->
+                        <div class="form-step d-none" id="step2">
+                            <h4 class="mb-4">Select Camera & Duration</h4>
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <label class="form-label fw-bold mb-3">Choose Camera</label>
+                                    {% for key, camera in cameras.items() %}
+                                    <div class="camera-option" data-camera="{{ key }}" data-price="{{ camera.price }}">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <i class="fas fa-camera fa-2x text-primary me-3"></i>
+                                                <strong>{{ camera.name }}</strong>
+                                                <p class="small text-muted mb-0">{{ camera.description }}</p>
+                                            </div>
+                                            <div class="text-end">
+                                                <span class="fw-bold text-primary">₹{{ camera.price }}/day</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold">Number of Days</label>
+                                    <input type="number" class="form-control form-control-lg" name="days" id="days" min="1" max="30" placeholder="Enter days" required>
+                                    <small class="text-muted">Minimum 1 day</small>
+                                </div>
+                            </div>
+                            <input type="hidden" name="camera_type" id="camera_type" required>
+                            <div class="text-end mt-4">
+                                <button type="button" class="btn btn-secondary btn-prev me-2"><i class="fas fa-arrow-left"></i> Previous</button>
+                                <button type="button" class="btn btn-primary btn-next">Next Step <i class="fas fa-arrow-right"></i></button>
+                            </div>
+                        </div>
+
+                        <!-- Step 3: Photographer Selection -->
+                        <div class="form-step d-none" id="step3">
+                            <h4 class="mb-4">Select Photographer</h4>
+                            <div class="row" id="photographerList">
+                                {% for photographer in photographers %}
+                                <div class="col-md-6">
+                                    <div class="photographer-card" data-id="{{ photographer.id }}" data-price="{{ photographer.price_per_day }}">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div>
+                                                <h5>{{ photographer.name }}</h5>
+                                                <p class="mb-1"><i class="fas fa-star text-warning"></i> {{ photographer.rating }} ★</p>
+                                                <p class="mb-1"><i class="fas fa-camera"></i> {{ photographer.specialty }}</p>
+                                                <p class="mb-1"><i class="fas fa-clock"></i> {{ photographer.experience }} years exp.</p>
+                                            </div>
+                                            <div class="text-end">
+                                                <div class="price-tag bg-primary text-white p-2 rounded">
+                                                    ₹{{ photographer.price_per_day }}/day
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            <input type="hidden" name="photographer_id" id="photographer_id" required>
+                            <div class="text-end mt-4">
+                                <button type="button" class="btn btn-secondary btn-prev me-2"><i class="fas fa-arrow-left"></i> Previous</button>
+                                <button type="button" class="btn btn-primary btn-next">Next Step <i class="fas fa-arrow-right"></i></button>
+                            </div>
+                        </div>
+
+                        <!-- Step 4: Confirmation -->
+                        <div class="form-step d-none" id="step4">
+                            <h4 class="mb-4">Booking Summary</h4>
+                            <div class="summary-card">
+                                <div class="summary-item">
+                                    <strong>Event Type:</strong> <span id="summaryEvent"></span>
+                                </div>
+                                <div class="summary-item">
+                                    <strong>Camera:</strong> <span id="summaryCamera"></span>
+                                </div>
+                                <div class="summary-item">
+                                    <strong>Duration:</strong> <span id="summaryDays"></span> day(s)
+                                </div>
+                                <div class="summary-item">
+                                    <strong>Photographer:</strong> <span id="summaryPhotographer"></span>
+                                </div>
+                                <div class="summary-item">
+                                    <strong>Camera Cost:</strong> ₹<span id="summaryCameraCost">0</span>
+                                </div>
+                                <div class="summary-item">
+                                    <strong>Photographer Cost:</strong> ₹<span id="summaryPhotographerCost">0</span>
+                                </div>
+                                <div class="summary-item fw-bold h5">
+                                    <strong>Total Price:</strong> ₹<span id="summaryTotal">0</span>
+                                </div>
+                            </div>
+                            <div class="text-end mt-4">
+                                <button type="button" class="btn btn-secondary btn-prev me-2"><i class="fas fa-arrow-left"></i> Previous</button>
+                                <button type="submit" class="btn btn-success btn-next">Confirm Booking <i class="fas fa-check-circle"></i></button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentStep = 1;
+    let selectedEvent = null;
+    let selectedCamera = null;
+    let selectedPhotographer = null;
+
+    // Event selection
+    document.querySelectorAll('.event-card').forEach(card => {
+        card.addEventListener('click', function() {
+            document.querySelectorAll('.event-card').forEach(c => c.style.opacity = '0.6');
+            this.style.opacity = '1';
+            selectedEvent = this.getAttribute('data-event');
+            document.getElementById('event_type').value = selectedEvent;
+        });
+    });
+
+    // Camera selection
+    document.querySelectorAll('.camera-option').forEach(option => {
+        option.addEventListener('click', function() {
+            document.querySelectorAll('.camera-option').forEach(o => o.classList.remove('selected'));
+            this.classList.add('selected');
+            selectedCamera = {
+                key: this.getAttribute('data-camera'),
+                price: parseInt(this.getAttribute('data-price'))
+            };
+            document.getElementById('camera_type').value = selectedCamera.key;
+        });
+    });
+
+    // Photographer selection
+    document.querySelectorAll('.photographer-card').forEach(card => {
+        card.addEventListener('click', function() {
+            document.querySelectorAll('.photographer-card').forEach(c => c.classList.remove('selected'));
+            this.classList.add('selected');
+            selectedPhotographer = {
+                id: this.getAttribute('data-id'),
+                price: parseInt(this.getAttribute('data-price')),
+                name: this.querySelector('h5').innerText
+            };
+            document.getElementById('photographer_id').value = selectedPhotographer.id;
+        });
+    });
+
+    // Navigation
+    function updateStep(step) {
+        // Hide all steps
+        for(let i = 1; i <= 4; i++) {
+            document.getElementById(`step${i}`).classList.add('d-none');
+        }
+        // Show current step
+        document.getElementById(`step${step}`).classList.remove('d-none');
+        
+        // Update indicators
+        for(let i = 1; i <= 4; i++) {
+            const indicator = document.getElementById(`step${i}Indicator`);
+            if(i < step) {
+                indicator.classList.add('completed');
+                indicator.classList.remove('active');
+            } else if(i === step) {
+                indicator.classList.add('active');
+                indicator.classList.remove('completed');
+            } else {
+                indicator.classList.remove('active', 'completed');
+            }
+        }
+        
+        // Update summary on step 4
+        if(step === 4) {
+            updateSummary();
+        }
+    }
+
+    function updateSummary() {
+        const days = document.getElementById('days').value || 0;
+        const cameraCost = selectedCamera ? selectedCamera.price * days : 0;
+        const photographerCost = selectedPhotographer ? selectedPhotographer.price * days : 0;
+        const total = cameraCost + photographerCost;
+        
+        document.getElementById('summaryEvent').innerText = selectedEvent || 'Not selected';
+        document.getElementById('summaryCamera').innerText = selectedCamera ? document.querySelector(`.camera-option[data-camera="${selectedCamera.key}"] strong`).innerText : 'Not selected';
+        document.getElementById('summaryDays').innerText = days;
+        document.getElementById('summaryPhotographer').innerText = selectedPhotographer ? selectedPhotographer.name : 'Not selected';
+        document.getElementById('summaryCameraCost').innerText = cameraCost;
+        document.getElementById('summaryPhotographerCost').innerText = photographerCost;
+        document.getElementById('summaryTotal').innerText = total;
+    }
+
+    document.querySelectorAll('.btn-next').forEach(btn => {
+        btn.addEventListener('click', function() {
+            if(currentStep === 1 && !selectedEvent) {
+                alert('Please select an event type');
+                return;
+            }
+            if(currentStep === 2 && (!selectedCamera || !document.getElementById('days').value)) {
+                alert('Please select camera and enter number of days');
+                return;
+            }
+            if(currentStep === 3 && !selectedPhotographer) {
+                alert('Please select a photographer');
+                return;
+            }
+            if(currentStep < 4) {
+                currentStep++;
+                updateStep(currentStep);
+            }
+        });
+    });
+
+    document.querySelectorAll('.btn-prev').forEach(btn => {
+        btn.addEventListener('click', function() {
+            if(currentStep > 1) {
+                currentStep--;
+                updateStep(currentStep);
+            }
+        });
+    });
+
+    // Days input validation
+    document.getElementById('days').addEventListener('input', function() {
+        if(this.value < 1) this.value = 1;
+        if(this.value > 30) this.value = 30;
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,244 @@
+{% extends "base.html" %}
+
+{% block extra_css %}
+<style>
+    .admin-container {
+        min-height: 100vh;
+        padding: 80px 0 50px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .admin-card {
+        background: white;
+        border-radius: 20px;
+        padding: 30px;
+        margin-bottom: 30px;
+    }
+
+    .stat-box {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        border-radius: 15px;
+        padding: 20px;
+        color: white;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+
+    .stat-box:hover {
+        transform: translateY(-5px);
+    }
+
+    .stat-number {
+        font-size: 2.5rem;
+        font-weight: bold;
+    }
+
+    .nav-tabs {
+        border-bottom: 2px solid #e0e0e0;
+        margin-bottom: 20px;
+    }
+
+    .nav-tabs .nav-link {
+        border: none;
+        color: #666;
+        padding: 12px 25px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    .nav-tabs .nav-link:hover {
+        color: #667eea;
+        border: none;
+    }
+
+    .nav-tabs .nav-link.active {
+        color: #667eea;
+        border-bottom: 3px solid #667eea;
+        background: transparent;
+    }
+
+    .table-responsive {
+        border-radius: 15px;
+        overflow: hidden;
+    }
+
+    .table {
+        margin-bottom: 0;
+    }
+
+    .table thead th {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        border: none;
+        padding: 15px;
+    }
+
+    .table tbody tr:hover {
+        background: rgba(102,126,234,0.05);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+    <div class="container">
+        <div class="admin-card">
+            <h1 class="text-center mb-4"><i class="fas fa-chart-line"></i> Admin Dashboard</h1>
+            <p class="text-center text-muted">Welcome to QuantumPix Admin Panel</p>
+
+            <!-- Statistics -->
+            <div class="row mb-5">
+                <div class="col-md-3">
+                    <div class="stat-box">
+                        <i class="fas fa-users fa-2x mb-2"></i>
+                        <div class="stat-number">{{ users|length }}</div>
+                        <div>Total Users</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-box">
+                        <i class="fas fa-calendar-check fa-2x mb-2"></i>
+                        <div class="stat-number">{{ bookings|length }}</div>
+                        <div>Total Bookings</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-box">
+                        <i class="fas fa-camera fa-2x mb-2"></i>
+                        <div class="stat-number">{{ photographers|length }}</div>
+                        <div>Photographers</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-box">
+                        <i class="fas fa-rupee-sign fa-2x mb-2"></i>
+                        <div class="stat-number">₹{{ bookings|sum(attribute='total_price')|default(0) }}</div>
+                        <div>Total Revenue</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabs -->
+            <ul class="nav nav-tabs" id="adminTab" role="tablist">
+                <li class="nav-item">
+                    <button class="nav-link active" id="bookings-tab" data-bs-toggle="tab" data-bs-target="#bookings" type="button">
+                        <i class="fas fa-calendar"></i> Bookings
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" id="users-tab" data-bs-toggle="tab" data-bs-target="#users" type="button">
+                        <i class="fas fa-users"></i> Users
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" id="photographers-tab" data-bs-toggle="tab" data-bs-target="#photographers" type="button">
+                        <i class="fas fa-camera"></i> Photographers
+                    </button>
+                </li>
+            </ul>
+
+            <div class="tab-content mt-4">
+                <!-- Bookings Tab -->
+                <div class="tab-pane fade show active" id="bookings">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>User ID</th>
+                                    <th>Event</th>
+                                    <th>Days</th>
+                                    <th>Total Price</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for booking in bookings %}
+                                <tr>
+                                    <td>#{{ booking.id }}</td>
+                                    <td>{{ booking.user_id }}</td>
+                                    <td>{{ booking.event_type }}</td>
+                                    <td>{{ booking.days }}</td>
+                                    <td>₹{{ booking.total_price }}</td>
+                                    <td><span class="badge bg-success">{{ booking.status }}</span></td>
+                                    <td>{{ booking.created_at.strftime('%Y-%m-%d') if booking.created_at else 'N/A' }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Users Tab -->
+                <div class="tab-pane fade" id="users">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Role</th>
+                                    <th>Joined</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in users %}
+                                <tr>
+                                    <td>{{ user.id }}</td>
+                                    <td>{{ user.name }}</td>
+                                    <td>{{ user.email }}</td>
+                                    <td>
+                                        <span class="badge {% if user.role == 'premium' %}bg-warning{% else %}bg-secondary{% endif %}">
+                                            {{ user.role }}
+                                        </span>
+                                    </td>
+                                    <td>{{ user.created_at.strftime('%Y-%m-%d') if user.created_at else 'N/A' }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Photographers Tab -->
+                <div class="tab-pane fade" id="photographers">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Specialty</th>
+                                    <th>Experience</th>
+                                    <th>Price/Day</th>
+                                    <th>Rating</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for photographer in photographers %}
+                                <tr>
+                                    <td>{{ photographer.id }}</td>
+                                    <td>{{ photographer.name }}</td>
+                                    <td>{{ photographer.specialty }}</td>
+                                    <td>{{ photographer.experience }} years</td>
+                                    <td>₹{{ photographer.price_per_day }}</td>
+                                    <td>{{ photographer.rating }} ★</td>
+                                    <td>
+                                        <span class="badge {% if photographer.available %}bg-success{% else %}bg-danger{% endif %}">
+                                            {{ 'Available' if photographer.available else 'Unavailable' }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
